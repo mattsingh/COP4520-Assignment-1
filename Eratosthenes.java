@@ -17,7 +17,9 @@ public class Eratosthenes {
 
         metrics.start();
         for (int i = 2; i * i < MAX; i++) {
-            threadExecutor.execute(new PrimeFinderThread(i, primes, metrics));
+            // If prime[p] is not changed, then it is a prime
+            if (primes[i])
+                threadExecutor.execute(new PrimeFinderThread(i, primes, metrics));
         }
 
         threadExecutor.shutdown();
@@ -68,13 +70,10 @@ class PrimeFinderThread implements Runnable {
     @Override
     public void run() {
         int iterations = 0;
-        // If prime[p] is not changed, then it is a prime
-        if (primes[n] == true) {
-            // Update all multiples of p
-            for (int i = n * n; i <= Eratosthenes.MAX; i += n) {
-                primes[i] = false;
-                iterations++;
-            }
+        // Update all multiples of p
+        for (int i = n * n; i <= Eratosthenes.MAX; i += n) {
+            primes[i] = false;
+            iterations++;
         }
         metrics.threadIterations.put(Thread.currentThread().getName(), iterations);
     }
