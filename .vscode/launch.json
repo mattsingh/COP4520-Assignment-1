@@ -12,9 +12,9 @@
         },
         {
             "type": "java",
-            "name": "Launch Eratosthenes",
+            "name": "Launch Main",
             "request": "launch",
-            "mainClass": "Eratosthenes",
+            "mainClass": "Main",
             "projectName": "Assignment 1_f9e62e0a"
         },
     ]
