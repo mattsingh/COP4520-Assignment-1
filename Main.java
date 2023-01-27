@@ -1,6 +1,5 @@
 import java.io.FileWriter;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +26,6 @@ public class Main {
         threadExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         metrics.end();
         metrics.calculateNumAndSumPrimes(primes);
-        metrics.output();
         metrics.writeToFile();
     }
 }
@@ -35,28 +33,18 @@ public class Main {
 class Eratosthenes implements Runnable {
     private int n;
     private boolean primes[];
-    private Metrics metrics;
 
     public Eratosthenes(int n, boolean primes[], Metrics metrics) {
         this.n = n;
         this.primes = primes;
-        this.metrics = metrics;
     }
 
     @Override
     public void run() {
-        // record start time
-        long startTime = System.currentTimeMillis();
-        int iterations = 0;
         // Update all multiples of p
         for (int i = n * n; i <= Main.MAX; i += n) {
             primes[i] = false;
-            iterations++;
         }
-        // record end time
-        long endTime = System.currentTimeMillis();
-        metrics.recordIterationsPerThread(Thread.currentThread().getName(), iterations);
-        metrics.recordDurationPerThread(Thread.currentThread().getName(), endTime - startTime);
     }
 }
 
@@ -66,9 +54,6 @@ class Metrics {
     private long numPrimes;
     private long sumPrimes;
     private int topTen[];
-
-    HashMap<String, Integer> threadIterations = new HashMap<String, Integer>();
-    HashMap<String, Long> threadDurations = new HashMap<String, Long>();
 
     public Metrics() {
         numPrimes = 0;
@@ -84,27 +69,6 @@ class Metrics {
         endTime = System.currentTimeMillis();
     }
 
-    public void output() {
-        System.out.println("Time: " + (endTime - startTime) + " ms");
-        System.out.println("Number of primes: " + numPrimes);
-        System.out.println("Sum of primes: " + sumPrimes);
-        System.out.println("Top 10 primes: ");
-        for (int i = 0; i < topTen.length; i++) {
-            System.out.print(topTen[i] + ", ");
-        }
-        System.out.println();
-
-        System.out.println("Iterations per thread: ");
-        for (String threadName : threadIterations.keySet()) {
-            System.out.println(threadName + ": " + threadIterations.get(threadName));
-        }
-
-        System.out.println("Time per thread: ");
-        for (String threadName : threadDurations.keySet()) {
-            System.out.println(threadName + ": " + threadDurations.get(threadName) + " ms");
-        }
-    }
-
     public void calculateNumAndSumPrimes(boolean primes[]) {
         for (int i = primes.length - 1; i >= 2; i--) {
             if (primes[i]) {
@@ -117,14 +81,6 @@ class Metrics {
         }
         // Sort top ten array
         Arrays.sort(topTen);
-    }
-
-    public void recordIterationsPerThread(String threadName, int iterations) {
-        threadIterations.put(threadName, threadIterations.getOrDefault(threadName, 0) + iterations);
-    }
-
-    public void recordDurationPerThread(String threadName, long duration) {
-        threadDurations.put(threadName, threadDurations.getOrDefault(threadName, 0L) + duration);
     }
 
     public boolean writeToFile() {
