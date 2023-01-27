@@ -88,7 +88,7 @@ class Metrics {
         // <execution time> <total number of primes found> <sum of all primes found>
         // <top ten maximum primes, listed in order from lowest to highest>
         try (FileWriter writer = new FileWriter("primes.txt")) {
-            writer.write((endTime - startTime) + " " + numPrimes + " " + sumPrimes + "\n");
+            writer.write((endTime - startTime) + "ms " + numPrimes + " " + sumPrimes + "\n");
             for (int i = 0; i < topTen.length; i++) {
                 if (i == topTen.length - 1)
                     writer.write(topTen[i] + "\n");
