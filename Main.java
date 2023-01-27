@@ -1,5 +1,8 @@
+import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +30,7 @@ public class Main {
         metrics.end();
         metrics.calculateNumAndSumPrimes(primes);
         metrics.output();
+        metrics.writeToFile();
     }
 }
 
@@ -59,18 +63,19 @@ class Eratosthenes implements Runnable {
 }
 
 class Metrics {
-    public long startTime;
-    public long endTime;
-    public long numPrimes;
-    public long sumPrimes;
+    private long startTime;
+    private long endTime;
+    private long numPrimes;
+    private long sumPrimes;
+    private int topTen[];
 
-    // list of threads and their iterations
     HashMap<String, Integer> threadIterations = new HashMap<String, Integer>();
     HashMap<String, Long> threadDurations = new HashMap<String, Long>();
 
     public Metrics() {
         numPrimes = 0;
         sumPrimes = 0;
+        topTen = new int[10];
     }
 
     public void start() {
@@ -85,6 +90,11 @@ class Metrics {
         System.out.println("Time: " + (endTime - startTime) + " ms");
         System.out.println("Number of primes: " + numPrimes);
         System.out.println("Sum of primes: " + sumPrimes);
+        System.out.println("Top 10 primes: ");
+        for (int i = 0; i < topTen.length; i++) {
+            System.out.print(topTen[i] + ", ");
+        }
+        System.out.println();
 
         System.out.println("Iterations per thread: ");
         for (String threadName : threadIterations.keySet()) {
@@ -93,17 +103,22 @@ class Metrics {
 
         System.out.println("Time per thread: ");
         for (String threadName : threadDurations.keySet()) {
-            System.out.println(threadName + ": " + threadDurations.get(threadName));
+            System.out.println(threadName + ": " + threadDurations.get(threadName) + " ms");
         }
     }
 
     public void calculateNumAndSumPrimes(boolean primes[]) {
-        for (int i = 2; i < primes.length; i++) {
-            if(primes[i]) {
+        for (int i = primes.length - 1; i >= 2; i--) {
+            if (primes[i]) {
                 numPrimes++;
                 sumPrimes += i;
+                if (numPrimes <= 10) {
+                    topTen[(int) numPrimes - 1] = i;
+                }
             }
         }
+        // Sort top ten array
+        Arrays.sort(topTen);
     }
 
     public void recordIterationsPerThread(String threadName, int iterations) {
@@ -112,5 +127,23 @@ class Metrics {
 
     public void recordDurationPerThread(String threadName, long duration) {
         threadDurations.put(threadName, threadDurations.getOrDefault(threadName, 0L) + duration);
+    }
+
+    public boolean writeToFile() {
+        // format
+        // <execution time>  <total number of primes found>  <sum of all primes found> 
+        // <top ten maximum primes, listed in order from lowest to highest>
+        try (FileWriter writer = new FileWriter("primes.txt")) {
+            writer.write((endTime - startTime) + " " + numPrimes + " " + sumPrimes + "\n");
+            for (int i = 0; i < topTen.length; i++) {
+                if (i == topTen.length - 1)
+                    writer.write(topTen[i] + "\n");
+                else
+                    writer.write(topTen[i] + ", ");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
